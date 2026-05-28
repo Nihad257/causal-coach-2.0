@@ -60,6 +60,13 @@ function AnalysisPage() {
   const [placebo, setPlacebo] = useState<PlaceboPoint[] | null>(null);
   const [placeboRunning, setPlaceboRunning] = useState(false);
   const [placeboProgress, setPlaceboProgress] = useState({ done: 0, total: 10 });
+  const [helpOpen, setHelpOpen] = useState(() => {
+    try {
+      return localStorage.getItem("cc-help-panel") !== "closed";
+    } catch {
+      return true;
+    }
+  });
 
   // Auto-load sample if ?demo=true
   useEffect(() => {
