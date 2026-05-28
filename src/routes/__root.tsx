@@ -62,17 +62,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CausalCoach — Did your campaign actually work?" },
+      { title: "CausalCoach Beta" },
       {
         name: "description",
         content:
           "Upload time-series data, pick a campaign date, and get a rigorous causal estimate with diagnostics, a plain-English verdict, and exportable results.",
       },
       { name: "author", content: "CausalCoach" },
-      { property: "og:title", content: "CausalCoach — Did your campaign actually work?" },
-      { property: "og:description", content: "Causal inference for marketers and founders." },
+      { property: "og:title", content: "CausalCoach Beta" },
+      { property: "og:description", content: "Analyze campaign effectiveness by uploading time-series data to get causal sales impact estimates." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "CausalCoach Beta" },
+      { name: "description", content: "Analyze campaign effectiveness by uploading time-series data to get causal sales impact estimates." },
+      { name: "twitter:description", content: "Analyze campaign effectiveness by uploading time-series data to get causal sales impact estimates." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/949bf909-2102-4432-8bcf-e95f686c6f88/id-preview-c2f41138--6187e497-70ef-4592-ab91-ed40ac7e7210.lovable.app-1779950638840.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/949bf909-2102-4432-8bcf-e95f686c6f88/id-preview-c2f41138--6187e497-70ef-4592-ab91-ed40ac7e7210.lovable.app-1779950638840.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
