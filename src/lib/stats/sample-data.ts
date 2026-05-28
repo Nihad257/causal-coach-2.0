@@ -1,5 +1,5 @@
-// 52-row weekly demo dataset with a real campaign effect baked in at week 30.
-// Deterministic (seeded PRNG) so the demo is reproducible.
+// 52-row weekly demo dataset with a clean, unambiguous positive effect at week 32.
+// No seasonality, deterministic (seeded PRNG) so the demo is reproducible.
 
 const mulberry32 = (seed: number) => {
   let a = seed;
@@ -16,17 +16,17 @@ export const buildSampleCSV = (): string => {
   const rand = mulberry32(42);
   const startDate = new Date(Date.UTC(2024, 0, 7)); // first Sunday
   const rows: string[] = ["date,y"];
-  const campaignWeek = 30;
+  const campaignWeek = 31; // zero-indexed: week 32 is the first campaign week
   for (let i = 0; i < 52; i++) {
     const d = new Date(startDate.getTime() + i * 7 * 86_400_000);
-    const trend = 100 + 0.6 * i;
-    const seasonal = 12 * Math.sin((2 * Math.PI * i) / 52);
-    const noise = (rand() - 0.5) * 8;
-    const lift = i >= campaignWeek ? 18 + (rand() - 0.5) * 4 : 0;
-    const y = Math.round(trend + seasonal + noise + lift);
+    const trend = 100 + 0.5 * i;
+    const noise = (rand() - 0.5) * 8; // ±4 units
+    const lift = i >= campaignWeek ? 18 : 0; // clean +18 level shift, no slope change
+    const y = Math.round(trend + noise + lift);
     rows.push(`${d.toISOString().slice(0, 10)},${y}`);
   }
   return rows.join("\n");
 };
 
-export const sampleCampaignDate = "2024-08-04"; // week 30 (zero-indexed from 2024-01-07)
+export const sampleCampaignDate = "2024-08-11"; // week 32 (zero-indexed from 2024-01-07)
+

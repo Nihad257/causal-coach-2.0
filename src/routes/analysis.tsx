@@ -60,6 +60,13 @@ function AnalysisPage() {
   const [placebo, setPlacebo] = useState<PlaceboPoint[] | null>(null);
   const [placeboRunning, setPlaceboRunning] = useState(false);
   const [placeboProgress, setPlaceboProgress] = useState({ done: 0, total: 10 });
+  const [helpOpen, setHelpOpen] = useState(() => {
+    try {
+      return localStorage.getItem("cc-help-panel") !== "closed";
+    } catch {
+      return true;
+    }
+  });
 
   // Auto-load sample if ?demo=true
   useEffect(() => {
@@ -327,6 +334,41 @@ function AnalysisPage() {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-6"
             >
+              {/* How to read these results */}
+              <Collapsible
+                open={helpOpen}
+                onOpenChange={(open) => {
+                  setHelpOpen(open);
+                  try {
+                    localStorage.setItem("cc-help-panel", open ? "open" : "closed");
+                  } catch {}
+                }}
+                className="rounded-xl border border-info/40 bg-info/5 p-5"
+              >
+                <CollapsibleTrigger className="flex w-full items-center justify-between text-sm font-medium text-info-foreground">
+                  <span>How to read these results</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${helpOpen ? "rotate-180" : ""}`} />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-3 space-y-2 text-sm text-muted-foreground">
+                  <p className="flex items-start gap-2">
+                    <span>✅</span>
+                    <span><strong>Strong evidence:</strong> Probability &gt; 80% AND placebo effects near zero</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <span>⚠️</span>
+                    <span><strong>Moderate evidence:</strong> Probability 60–80% — treat with caution</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <span>❌</span>
+                    <span><strong>Weak / no evidence:</strong> Probability &lt; 60% — the effect may be random noise</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <span>💡</span>
+                    <span><strong>Tip:</strong> A wide confidence interval (e.g. [-65, +52]) means you need more data — try uploading at least 40 pre-campaign rows</span>
+                  </p>
+                </CollapsibleContent>
+              </Collapsible>
+
               {/* Verdict hero */}
               <div className={`rounded-xl border p-6 ${
                 verdictTone(result.overall.prob_positive) === "confident"
