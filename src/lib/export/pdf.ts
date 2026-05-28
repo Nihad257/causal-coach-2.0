@@ -6,19 +6,69 @@ import autoTable from "jspdf-autotable";
 import type { ITSResult } from "../stats/its";
 import { fmtNum, fmtPct } from "../format";
 
+// Print-friendly color overrides applied to .causalcoach-main-chart while
+// taking the snapshot. CSS vars below match those used in MainChart.tsx so
+// Recharts elements pick up the overrides without any component changes.
+const PRINT_OVERRIDE_CSS = `
+.causalcoach-pdf-print-mode .causalcoach-main-chart,
+.causalcoach-pdf-print-mode .causalcoach-main-chart * {
+  --color-chart-actual: #1e40af;
+  --color-chart-counter: #6b7280;
+  --color-chart-band: #dbeafe;
+  --color-muted-foreground: #111827;
+  --color-border: #e5e7eb;
+  --color-popover: #ffffff;
+  --color-card: #ffffff;
+  --color-primary: #1e40af;
+}
+.causalcoach-pdf-print-mode .causalcoach-main-chart {
+  background: #ffffff !important;
+}
+.causalcoach-pdf-print-mode .causalcoach-main-chart .recharts-cartesian-grid line {
+  stroke: #e5e7eb !important;
+}
+.causalcoach-pdf-print-mode .causalcoach-main-chart text {
+  fill: #111827 !important;
+}
+`;
+
+// Walk the original SVG and copy resolved stroke/fill/color into matching
+// nodes on the clone as inline attributes. This is necessary because
+// serialized SVGs lose CSS var() resolution.
+const inlineComputedStyles = (orig: Element, clone: Element) => {
+  const cs = getComputedStyle(orig);
+  const stroke = cs.stroke;
+  const fill = cs.fill;
+  const color = cs.color;
+  if (stroke && stroke !== "none" && !stroke.includes("var(")) {
+    clone.setAttribute("stroke", stroke);
+  }
+  if (fill && fill !== "none" && !fill.includes("var(")) {
+    clone.setAttribute("fill", fill);
+  }
+  if (color) (clone as HTMLElement).style.color = color;
+  const oc = orig.children;
+  const cc = clone.children;
+  for (let i = 0; i < oc.length && i < cc.length; i++) {
+    inlineComputedStyles(oc[i], cc[i]);
+  }
+};
+
 const svgToPngDataUrl = async (svg: SVGElement, width: number, height: number): Promise<string | null> => {
   try {
-    // Inline computed styles so colors survive the snapshot.
     const cloned = svg.cloneNode(true) as SVGElement;
     cloned.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     cloned.setAttribute("width", String(width));
     cloned.setAttribute("height", String(height));
-    // Set a solid background matching current theme
-    const bg = getComputedStyle(document.body).backgroundColor || "#ffffff";
+
+    // Inline computed styles from the (currently overridden) original tree.
+    inlineComputedStyles(svg, cloned);
+
+    // White background rect
     const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     rect.setAttribute("width", "100%");
     rect.setAttribute("height", "100%");
-    rect.setAttribute("fill", bg);
+    rect.setAttribute("fill", "#ffffff");
     cloned.insertBefore(rect, cloned.firstChild);
 
     const xml = new XMLSerializer().serializeToString(cloned);
@@ -34,7 +84,7 @@ const svgToPngDataUrl = async (svg: SVGElement, width: number, height: number): 
         canvas.height = height * scale;
         const ctx = canvas.getContext("2d");
         if (!ctx) return reject(new Error("no ctx"));
-        ctx.fillStyle = bg;
+        ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         resolve(canvas.toDataURL("image/png"));
@@ -80,16 +130,30 @@ export async function generatePdfReport({ result, verdict, dwStat }: Args) {
   doc.text(verdictLines, margin, y);
   y += verdictLines.length * 14 + 8;
 
-  // Chart snapshot (best-effort)
+  // Chart snapshot — temporarily apply print-friendly color overrides so the
+  // chart is readable on white paper, then restore original styles.
   const svg = document.querySelector(".causalcoach-main-chart svg") as SVGElement | null;
   if (svg) {
-    const rect = svg.getBoundingClientRect();
-    const png = await svgToPngDataUrl(svg, Math.max(rect.width, 600), Math.max(rect.height, 320));
-    if (png) {
-      const imgW = pageW - margin * 2;
-      const imgH = (imgW * 320) / 600;
-      doc.addImage(png, "PNG", margin, y, imgW, imgH);
-      y += imgH + 12;
+    const styleEl = document.createElement("style");
+    styleEl.setAttribute("data-causalcoach-pdf", "true");
+    styleEl.textContent = PRINT_OVERRIDE_CSS;
+    document.head.appendChild(styleEl);
+    document.documentElement.classList.add("causalcoach-pdf-print-mode");
+    // Force a reflow so computed styles reflect the overrides.
+    void svg.getBoundingClientRect();
+
+    try {
+      const rect = svg.getBoundingClientRect();
+      const png = await svgToPngDataUrl(svg, Math.max(rect.width, 600), Math.max(rect.height, 320));
+      if (png) {
+        const imgW = pageW - margin * 2;
+        const imgH = (imgW * 320) / 600;
+        doc.addImage(png, "PNG", margin, y, imgW, imgH);
+        y += imgH + 12;
+      }
+    } finally {
+      document.documentElement.classList.remove("causalcoach-pdf-print-mode");
+      styleEl.remove();
     }
   }
 
