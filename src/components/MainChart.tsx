@@ -13,7 +13,6 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { HelpCircle } from "lucide-react";
 import { HintTip } from "./HintTip";
 import type { ITSResult } from "../lib/stats/its";
 import { fmtNum } from "../lib/format";
