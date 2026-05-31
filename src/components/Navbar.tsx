@@ -43,7 +43,7 @@ export function Navbar() {
         </nav>
         <div className="flex items-center gap-1">
           <a
-            href="https://github.com"
+            href="https://github.com/Nihad257/causal-coach"
             target="_blank"
             rel="noreferrer"
             className="inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
