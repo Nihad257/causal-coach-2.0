@@ -8,10 +8,12 @@ import {
   Tooltip,
   CartesianGrid,
   ReferenceLine,
+  ReferenceArea,
   Brush,
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import { HintTip } from "./HintTip";
 import type { ITSResult } from "../lib/stats/its";
 import { fmtNum } from "../lib/format";
 
@@ -25,17 +27,62 @@ export function MainChart({ result, campaignDates }: Props) {
     () =>
       result.series.map((p) => ({
         ...p,
-        // Stack the band as two arrays for Recharts <Area dataKey={[lo,hi]}>
         band: [p.ci_low, p.ci_high] as [number, number],
       })),
     [result],
   );
 
+  // Detect contiguous post-campaign regions where CI width > 30% of mean actual.
+  const extrapolationZones = useMemo(() => {
+    const actuals = result.series.map((p) => p.actual).filter((v) => Number.isFinite(v));
+    const meanActual = actuals.length ? actuals.reduce((a, b) => a + b, 0) / actuals.length : 0;
+    const threshold = 0.3 * Math.abs(meanActual);
+    if (!(threshold > 0)) return [] as Array<{ x1: string; x2: string }>;
+    const zones: Array<{ x1: string; x2: string }> = [];
+    let start: string | null = null;
+    let last: string | null = null;
+    for (const p of result.series) {
+      const wide = !p.isPre && p.ci_high - p.ci_low > threshold;
+      if (wide) {
+        if (start === null) start = p.date;
+        last = p.date;
+      } else if (start !== null && last !== null) {
+        zones.push({ x1: start, x2: last });
+        start = null;
+        last = null;
+      }
+    }
+    if (start !== null && last !== null) zones.push({ x1: start, x2: last });
+    return zones;
+  }, [result]);
+
+
   return (
-    <div className="h-[420px] w-full">
+    <div className="w-full">
+      {extrapolationZones.length > 0 && (
+        <div className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-muted-foreground/25 ring-1 ring-muted-foreground/40" />
+          <span>Extrapolation zone — interpret with caution</span>
+          <HintTip>
+            Confidence intervals widen the further we project from the campaign date. Results here are less reliable.
+          </HintTip>
+        </div>
+      )}
+      <div className="h-[420px] w-full">
       <ResponsiveContainer>
         <ComposedChart data={data} margin={{ top: 16, right: 16, bottom: 0, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
+          {extrapolationZones.map((z) => (
+            <ReferenceArea
+              key={`${z.x1}-${z.x2}`}
+              x1={z.x1}
+              x2={z.x2}
+              fill="var(--color-muted-foreground)"
+              fillOpacity={0.08}
+              stroke="none"
+              ifOverflow="hidden"
+            />
+          ))}
           <XAxis
             dataKey="date"
             tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
@@ -124,6 +171,7 @@ export function MainChart({ result, campaignDates }: Props) {
           />
         </ComposedChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }

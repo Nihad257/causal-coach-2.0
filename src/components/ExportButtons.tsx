@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download, FileText, Copy, Check } from "lucide-react";
+import { Download, FileText, Copy, Check, Share2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import type { ITSResult } from "../lib/stats/its";
@@ -67,6 +67,16 @@ export function ExportButtons({ result, verdict, dwStat }: Props) {
     }
   };
 
+  const shareTool = async () => {
+    const text = `I used CausalCoach to measure my campaign's real impact 📊\n\nFree tool — no signup needed, data never leaves your browser:\nhttps://causalcoachbeta.lovable.app`;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Copied!", { duration: 2000 });
+    } catch {
+      toast.error("Could not copy to clipboard");
+    }
+  };
+
   return (
     <div className="flex flex-wrap gap-2">
       <Button variant="outline" size="sm" onClick={downloadCSV}>
@@ -80,6 +90,10 @@ export function ExportButtons({ result, verdict, dwStat }: Props) {
       <Button variant="outline" size="sm" onClick={copyMarkdown}>
         {copied ? <Check className="mr-1.5 h-3.5 w-3.5 text-success" /> : <Copy className="mr-1.5 h-3.5 w-3.5" />}
         Copy as Markdown
+      </Button>
+      <Button variant="outline" size="sm" onClick={shareTool}>
+        <Share2 className="mr-1.5 h-3.5 w-3.5" />
+        Share this tool
       </Button>
     </div>
   );
