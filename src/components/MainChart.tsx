@@ -172,6 +172,7 @@ export function MainChart({ result, campaignDates }: Props) {
           />
         </ComposedChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }
