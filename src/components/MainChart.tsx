@@ -59,10 +59,34 @@ export function MainChart({ result, campaignDates }: Props) {
 
 
   return (
-    <div className="h-[420px] w-full">
+    <div className="w-full">
+      {extrapolationZones.length > 0 && (
+        <div className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-muted-foreground/25 ring-1 ring-muted-foreground/40" />
+          <span>Extrapolation zone — interpret with caution</span>
+          <HintTip>
+            <span className="inline-flex items-center gap-1">
+              <HelpCircle className="h-3 w-3" />
+            </span>
+            Confidence intervals widen the further we project from the campaign date. Results here are less reliable.
+          </HintTip>
+        </div>
+      )}
+      <div className="h-[420px] w-full">
       <ResponsiveContainer>
         <ComposedChart data={data} margin={{ top: 16, right: 16, bottom: 0, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
+          {extrapolationZones.map((z) => (
+            <ReferenceArea
+              key={`${z.x1}-${z.x2}`}
+              x1={z.x1}
+              x2={z.x2}
+              fill="var(--color-muted-foreground)"
+              fillOpacity={0.08}
+              stroke="none"
+              ifOverflow="hidden"
+            />
+          ))}
           <XAxis
             dataKey="date"
             tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
