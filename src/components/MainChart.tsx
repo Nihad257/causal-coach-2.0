@@ -65,9 +65,6 @@ export function MainChart({ result, campaignDates }: Props) {
           <span className="inline-block h-2.5 w-2.5 rounded-sm bg-muted-foreground/25 ring-1 ring-muted-foreground/40" />
           <span>Extrapolation zone — interpret with caution</span>
           <HintTip>
-            <span className="inline-flex items-center gap-1">
-              <HelpCircle className="h-3 w-3" />
-            </span>
             Confidence intervals widen the further we project from the campaign date. Results here are less reliable.
           </HintTip>
         </div>
