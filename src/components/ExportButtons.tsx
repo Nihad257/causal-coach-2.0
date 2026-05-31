@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download, FileText, Copy, Check } from "lucide-react";
+import { Download, FileText, Copy, Check, Share2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import type { ITSResult } from "../lib/stats/its";
