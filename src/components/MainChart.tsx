@@ -8,10 +8,13 @@ import {
   Tooltip,
   CartesianGrid,
   ReferenceLine,
+  ReferenceArea,
   Brush,
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import { HelpCircle } from "lucide-react";
+import { HintTip } from "./HintTip";
 import type { ITSResult } from "../lib/stats/its";
 import { fmtNum } from "../lib/format";
 
@@ -25,11 +28,35 @@ export function MainChart({ result, campaignDates }: Props) {
     () =>
       result.series.map((p) => ({
         ...p,
-        // Stack the band as two arrays for Recharts <Area dataKey={[lo,hi]}>
         band: [p.ci_low, p.ci_high] as [number, number],
       })),
     [result],
   );
+
+  // Detect contiguous post-campaign regions where CI width > 30% of mean actual.
+  const extrapolationZones = useMemo(() => {
+    const actuals = result.series.map((p) => p.actual).filter((v) => Number.isFinite(v));
+    const meanActual = actuals.length ? actuals.reduce((a, b) => a + b, 0) / actuals.length : 0;
+    const threshold = 0.3 * Math.abs(meanActual);
+    if (!(threshold > 0)) return [] as Array<{ x1: string; x2: string }>;
+    const zones: Array<{ x1: string; x2: string }> = [];
+    let start: string | null = null;
+    let last: string | null = null;
+    for (const p of result.series) {
+      const wide = !p.isPre && p.ci_high - p.ci_low > threshold;
+      if (wide) {
+        if (start === null) start = p.date;
+        last = p.date;
+      } else if (start !== null && last !== null) {
+        zones.push({ x1: start, x2: last });
+        start = null;
+        last = null;
+      }
+    }
+    if (start !== null && last !== null) zones.push({ x1: start, x2: last });
+    return zones;
+  }, [result]);
+
 
   return (
     <div className="h-[420px] w-full">
