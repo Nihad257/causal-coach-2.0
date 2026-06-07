@@ -6,7 +6,7 @@ A free web tool that helps marketers, founders, and analysts answer one question
 No signup, no data leaves your browser, and it's completely free.
 
 🔗 **Live app (Lovable)** : [https://causal-coach-2.lovable.app](https://causal-coach-2.lovable.app)  
-*(Vercel deployment coming soon – check back later)*
+
 
 ---
 
@@ -47,7 +47,7 @@ A 52‑week synthetic dataset is built into the app. Try it with campaign start 
 
 - **Live app (Lovable)** : [https://causal-coach-2.lovable.app](https://causal-coach-2.lovable.app)
 - **GitHub repo** : [https://github.com/Nihad257/causal-coach-2.0](https://github.com/Nihad257/causal-coach-2.0)
-- **Vercel** – coming soon
+
 
 ---
 
